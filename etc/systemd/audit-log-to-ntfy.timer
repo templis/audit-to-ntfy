@@ -1,0 +1,11 @@
+[Unit]
+Description=Run audit-log-to-ntfy periodically
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=15s
+Persistent=true
+Unit=audit-log-to-ntfy.service
+
+[Install]
+WantedBy=timers.target

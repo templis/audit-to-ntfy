@@ -1,0 +1,14 @@
+# Regex used to select interesting audit keys.
+# Keep "rootcmd" out of the default to avoid self-noise.
+ALERT_KEYS_REGEX=' key="(sshkeys|sudo-use|priv-esc|systemd|user-systemd)"'
+
+# Hard cap for notification body length.
+MAX_BODY=1200
+
+# Optional mapping to shorten paths in messages (e.g. /home/alice -> ~).
+# Leave blank to disable or set one/both explicitly.
+HOME_USER=""
+HOME_DIR=""
+
+# Directory holding formatter plugins.
+FORMATTERS_DIR="/etc/audit-alerts/formatters.d"

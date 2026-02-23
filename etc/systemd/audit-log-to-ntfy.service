@@ -1,0 +1,12 @@
+[Unit]
+Description=Send new auditd events to ntfy
+After=network-online.target auditd.service
+Wants=network-online.target
+ConditionPathExists=/var/log/audit/audit.log
+ConditionPathExists=/etc/audit-alerts/ntfy.env
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/bin/audit-log-to-ntfy.sh

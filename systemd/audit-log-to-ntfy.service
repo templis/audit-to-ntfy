@@ -1,6 +1,0 @@
-[Unit]
-Description=Push new audit.log events to ntfy
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/audit-log-to-ntfy.sh
