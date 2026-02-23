@@ -10,9 +10,11 @@ The project is designed for Arch Linux KDE and stays portable across distros by 
 - Deduplication by audit `msgid` / serial (`/var/lib/audit-log-to-ntfy.lastmsg`)
 - Configurable key filter (default: `sshkeys`, `sudo-use`, `priv-esc`, `systemd`, `user-systemd`)
 - Modular formatter plugins (`formatters.d/<key>.sh`, fallback to `default.sh`)
+- Optional custom rulesets per module via sourced files in `rules.d`
 - NTFY delivery with `curl --config /dev/null` and bearer token
 - Message size cap (`MAX_BODY`) to avoid oversized payload rejection
 - systemd oneshot service + periodic timer
+- Self-update workflow via `update.sh`
 
 ## Repository Layout
 
@@ -21,9 +23,11 @@ The project is designed for Arch Linux KDE and stays portable across distros by 
 - `etc/audit-alerts/audit-alerts.conf.example` behavior config template
 - `etc/audit-alerts/format.sh` formatter dispatcher/helpers
 - `etc/audit-alerts/formatters.d/*.sh` key-specific formatter plugins
+- `etc/audit-alerts/rules.d/*.rules.sh` editable custom ruleset files
 - `etc/systemd/audit-log-to-ntfy.service` systemd service
 - `etc/systemd/audit-log-to-ntfy.timer` systemd timer
 - `install.sh` idempotent installer
+- `update.sh` self-update script (`git pull` + reinstall)
 
 ## Prerequisites
 
@@ -58,6 +62,26 @@ Check logs:
 journalctl -u audit-log-to-ntfy.service -n 50 --no-pager
 ```
 
+Update later:
+
+```bash
+sudo /usr/local/bin/audit-to-ntfy-update.sh
+```
+
+## Update
+
+From the repository checkout:
+
+```bash
+sudo ./update.sh
+```
+
+If your checkout is elsewhere, set the path explicitly:
+
+```bash
+sudo AUDIT_TO_NTFY_REPO=/path/to/audit-to-ntfy /usr/local/bin/audit-to-ntfy-update.sh
+```
+
 ## Manual Installation (mirrors install.sh exactly)
 
 Run these commands from the project root:
@@ -65,15 +89,22 @@ Run these commands from the project root:
 ```bash
 sudo install -d -m 755 /etc/audit-alerts
 sudo install -d -m 755 /etc/audit-alerts/formatters.d
+sudo install -d -m 755 /etc/audit-alerts/rules.d
 sudo install -d -m 755 /etc/systemd/system
 
 sudo install -m 755 bin/audit-log-to-ntfy.sh /usr/local/bin/audit-log-to-ntfy.sh
+sudo install -m 755 update.sh /usr/local/bin/audit-to-ntfy-update.sh
 sudo install -m 755 etc/audit-alerts/format.sh /etc/audit-alerts/format.sh
 
-sudo install -m 644 etc/audit-alerts/formatters.d/default.sh /etc/audit-alerts/formatters.d/default.sh
-sudo install -m 644 etc/audit-alerts/formatters.d/sshkeys.sh /etc/audit-alerts/formatters.d/sshkeys.sh
-sudo install -m 644 etc/audit-alerts/formatters.d/sudo-use.sh /etc/audit-alerts/formatters.d/sudo-use.sh
-sudo install -m 644 etc/audit-alerts/formatters.d/systemd.sh /etc/audit-alerts/formatters.d/systemd.sh
+for formatter_file in default.sh sshkeys.sh sudo-use.sh systemd.sh; do
+  sudo install -m 644 "etc/audit-alerts/formatters.d/${formatter_file}" "/etc/audit-alerts/formatters.d/${formatter_file}"
+done
+
+for ruleset_file in common.rules.sh default.rules.sh sshkeys.rules.sh sudo-use.rules.sh systemd.rules.sh user-systemd.rules.sh priv-esc.rules.sh; do
+  if [ ! -f "/etc/audit-alerts/rules.d/${ruleset_file}" ]; then
+    sudo install -m 644 "etc/audit-alerts/rules.d/${ruleset_file}" "/etc/audit-alerts/rules.d/${ruleset_file}"
+  fi
+done
 
 sudo install -m 644 etc/audit-alerts/ntfy.env.example /etc/audit-alerts/ntfy.env.example
 sudo install -m 644 etc/audit-alerts/audit-alerts.conf.example /etc/audit-alerts/audit-alerts.conf.example
@@ -100,15 +131,20 @@ Set ownership:
 ```bash
 sudo chown root:root \
   /usr/local/bin/audit-log-to-ntfy.sh \
+  /usr/local/bin/audit-to-ntfy-update.sh \
   /etc/audit-alerts/format.sh \
-  /etc/audit-alerts/formatters.d/default.sh \
-  /etc/audit-alerts/formatters.d/sshkeys.sh \
-  /etc/audit-alerts/formatters.d/sudo-use.sh \
-  /etc/audit-alerts/formatters.d/systemd.sh \
   /etc/audit-alerts/ntfy.env.example \
   /etc/audit-alerts/audit-alerts.conf.example \
   /etc/audit-alerts/ntfy.env \
   /etc/audit-alerts/audit-alerts.conf
+
+for formatter_file in default.sh sshkeys.sh sudo-use.sh systemd.sh; do
+  sudo chown root:root "/etc/audit-alerts/formatters.d/${formatter_file}"
+done
+
+for ruleset_file in common.rules.sh default.rules.sh sshkeys.rules.sh sudo-use.rules.sh systemd.rules.sh user-systemd.rules.sh priv-esc.rules.sh; do
+  sudo chown root:root "/etc/audit-alerts/rules.d/${ruleset_file}"
+done
 ```
 
 Install systemd units:
@@ -144,12 +180,35 @@ MAX_BODY=1200
 HOME_USER=""
 HOME_DIR=""
 FORMATTERS_DIR="/etc/audit-alerts/formatters.d"
+RULESETS_DIR="/etc/audit-alerts/rules.d"
 ```
 
 - `ALERT_KEYS_REGEX`: Controls which audit keys trigger notifications.
 - `MAX_BODY`: Max message body length before truncation.
 - `HOME_USER` / `HOME_DIR`: Used to shorten matching paths to `~`.
 - `FORMATTERS_DIR`: Formatter plugin directory.
+- `RULESETS_DIR`: Directory for optional sourced custom rulesets.
+
+## Custom Rulesets
+
+Rulesets are sourced from:
+
+- `/etc/audit-alerts/rules.d/common.rules.sh`
+- `/etc/audit-alerts/rules.d/<key>.rules.sh` (for example `sshkeys.rules.sh`, `sudo-use.rules.sh`)
+
+Each ruleset file is created by `install.sh` (and therefore also by `update.sh` via reinstall).
+The file header explicitly says to edit only below `###`.
+
+Supported override variables:
+
+- global: `RULE_TITLE_OVERRIDE`, `RULE_TITLE_PREFIX`, `RULE_BODY_PREPEND`, `RULE_BODY_APPEND`
+- `sshkeys`: `RULE_SSHKEYS_SUMMARY`
+- `sudo-use`: `RULE_SUDO_SUMMARY`
+- `systemd` and `user-systemd`: `RULE_SYSTEMD_SUMMARY`
+- `priv-esc`: `RULE_PRIV_ESC_SUMMARY`
+- fallback/default: `RULE_DEFAULT_SUMMARY`
+
+If you create useful rulesets, please send them as examples so other users can benefit too.
 
 ## Formatter Behavior
 

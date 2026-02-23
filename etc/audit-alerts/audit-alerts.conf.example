@@ -12,3 +12,6 @@ HOME_DIR=""
 
 # Directory holding formatter plugins.
 FORMATTERS_DIR="/etc/audit-alerts/formatters.d"
+
+# Directory holding optional custom rulesets (sourced by formatter dispatcher).
+RULESETS_DIR="/etc/audit-alerts/rules.d"

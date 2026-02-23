@@ -7,7 +7,7 @@ formatter_render() {
     path="unknown path"
   fi
 
-  summary="write on: ${path} with: ${EVENT_EXE:-?} (${EVENT_COMM:-?})"
+  summary="${RULE_SSHKEYS_SUMMARY:-write on: ${path} with: ${EVENT_EXE:-?} (${EVENT_COMM:-?})}"
 
   FORMAT_TITLE="🔐 Audit: sshkeys on ${AUDIT_HOST}"
   FORMAT_BODY="$(

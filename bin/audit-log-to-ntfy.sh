@@ -60,6 +60,7 @@ source "$CONF_FILE"
 ALERT_KEYS_REGEX="${ALERT_KEYS_REGEX:- key=\"(sshkeys|sudo-use|priv-esc|systemd|user-systemd)\"}"
 MAX_BODY="${MAX_BODY:-1200}"
 FORMATTERS_DIR="${FORMATTERS_DIR:-/etc/audit-alerts/formatters.d}"
+RULESETS_DIR="${RULESETS_DIR:-/etc/audit-alerts/rules.d}"
 HOME_USER="${HOME_USER:-}"
 HOME_DIR="${HOME_DIR:-}"
 
@@ -157,6 +158,7 @@ format_output="$(
   HOME_USER="$HOME_USER" \
   HOME_DIR="$HOME_DIR" \
   FORMATTERS_DIR="$FORMATTERS_DIR" \
+  RULESETS_DIR="$RULESETS_DIR" \
   "$FORMAT_DISPATCHER"
 )"
 

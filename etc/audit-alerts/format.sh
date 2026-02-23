@@ -15,6 +15,7 @@ AUDIT_HOST="${AUDIT_HOST:-$(hostname 2>/dev/null || echo unknown-host)}"
 HOME_USER="${HOME_USER:-}"
 HOME_DIR="${HOME_DIR:-}"
 FORMATTERS_DIR="${FORMATTERS_DIR:-/etc/audit-alerts/formatters.d}"
+RULESETS_DIR="${RULESETS_DIR:-/etc/audit-alerts/rules.d}"
 
 extract_quoted_field() {
   local field="$1"
@@ -87,6 +88,35 @@ auid_to_user() {
   getent passwd "$auid" | awk -F: 'NR==1 {print $1}'
 }
 
+source_ruleset_if_exists() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    # shellcheck disable=SC1090
+    source "$file"
+  fi
+}
+
+apply_ruleset_overrides() {
+  local title_prefix="${RULE_TITLE_PREFIX:-}"
+  local title_override="${RULE_TITLE_OVERRIDE:-}"
+  local body_prepend="${RULE_BODY_PREPEND:-}"
+  local body_append="${RULE_BODY_APPEND:-}"
+
+  if [[ -n "$title_override" ]]; then
+    FORMAT_TITLE="$title_override"
+  elif [[ -n "$title_prefix" ]]; then
+    FORMAT_TITLE="${title_prefix}${FORMAT_TITLE}"
+  fi
+
+  if [[ -n "$body_prepend" ]]; then
+    FORMAT_BODY="${body_prepend}"$'\n'"${FORMAT_BODY}"
+  fi
+
+  if [[ -n "$body_append" ]]; then
+    FORMAT_BODY="${FORMAT_BODY}"$'\n'"${body_append}"
+  fi
+}
+
 if [[ -z "$EVENT_KEY" ]]; then
   EVENT_KEY="$(extract_quoted_field "key" "$SYSCALL_LINE")"
 fi
@@ -110,6 +140,11 @@ if [[ -z "$EVENT_TTY" ]]; then
 fi
 if [[ -n "$HOME_USER" && -z "$HOME_DIR" ]]; then
   HOME_DIR="$(getent passwd "$HOME_USER" | awk -F: 'NR==1 {print $6}')"
+fi
+
+source_ruleset_if_exists "${RULESETS_DIR%/}/common.rules.sh"
+if [[ -n "$EVENT_KEY" ]]; then
+  source_ruleset_if_exists "${RULESETS_DIR%/}/${EVENT_KEY}.rules.sh"
 fi
 
 EVENT_USER="$(auid_to_user "${EVENT_AUID:-}")"
@@ -158,6 +193,8 @@ if [[ -z "$FORMAT_BODY" ]]; then
     inspect_hint
   )"
 fi
+
+apply_ruleset_overrides
 
 printf "TITLE=%s\n" "$FORMAT_TITLE"
 printf "__BODY__\n"
