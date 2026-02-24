@@ -92,22 +92,34 @@ done
 
 echo "Installing $PROJECT_NAME..."
 
-install -d -m 755 "$DST_ETC_DIR"
-install -d -m 755 "$DST_FORMATTERS_DIR"
-install -d -m 755 "$DST_RULESETS_DIR"
-install -d -m 755 "$DST_LANG_DIR"
-install -d -m 755 "$DST_SYSTEMD_DIR"
+# Create directory only if it does not already exist.
+install_dir() {
+  local dir="$1" mode="$2"
+  [[ -d "$dir" ]] || install -d -m "$mode" "$dir"
+}
 
-install -m 755 "$SRC_BIN" "$DST_BIN"
-install -m 755 "$SRC_UPDATE" "$DST_UPDATE"
-install -m 755 "$SRC_ETC/format.sh" "$DST_ETC_DIR/format.sh"
+# Install file only when content differs from destination.
+install_file() {
+  local mode="$1" src="$2" dst="$3"
+  cmp -s "$src" "$dst" 2>/dev/null || install -m "$mode" "$src" "$dst"
+}
+
+install_dir "$DST_ETC_DIR"        755
+install_dir "$DST_FORMATTERS_DIR" 755
+install_dir "$DST_RULESETS_DIR"   755
+install_dir "$DST_LANG_DIR"       755
+install_dir "$DST_SYSTEMD_DIR"    755
+
+install_file 755 "$SRC_BIN"               "$DST_BIN"
+install_file 755 "$SRC_UPDATE"            "$DST_UPDATE"
+install_file 755 "$SRC_ETC/format.sh"     "$DST_ETC_DIR/format.sh"
 
 for formatter_file in "${FORMATTER_FILES[@]}"; do
-  install -m 644 "$SRC_ETC/formatters.d/$formatter_file" "$DST_FORMATTERS_DIR/$formatter_file"
+  install_file 644 "$SRC_ETC/formatters.d/$formatter_file" "$DST_FORMATTERS_DIR/$formatter_file"
 done
 
 for lang_file in "${LANG_FILES[@]}"; do
-  install -m 644 "$SRC_ETC/lang/$lang_file" "$DST_LANG_DIR/$lang_file"
+  install_file 644 "$SRC_ETC/lang/$lang_file" "$DST_LANG_DIR/$lang_file"
 done
 
 for ruleset_file in "${RULESET_FILES[@]}"; do
@@ -119,8 +131,8 @@ for ruleset_file in "${RULESET_FILES[@]}"; do
   fi
 done
 
-install -m 644 "$SRC_ETC/ntfy.env.example" "$DST_NTFY_ENV_EXAMPLE"
-install -m 644 "$SRC_ETC/audit-alerts.conf.example" "$DST_CONF_EXAMPLE"
+install_file 644 "$SRC_ETC/ntfy.env.example"        "$DST_NTFY_ENV_EXAMPLE"
+install_file 644 "$SRC_ETC/audit-alerts.conf.example" "$DST_CONF_EXAMPLE"
 
 if [[ ! -f "$DST_NTFY_ENV" ]]; then
   install -m 600 "$SRC_ETC/ntfy.env.example" "$DST_NTFY_ENV"
@@ -139,9 +151,7 @@ else
 fi
 
 for unit_file in audit-log-to-ntfy.service audit-log-to-ntfy.timer; do
-  if ! cmp -s "$SRC_SYSTEMD/$unit_file" "$DST_SYSTEMD_DIR/$unit_file" 2>/dev/null; then
-    install -m 644 "$SRC_SYSTEMD/$unit_file" "$DST_SYSTEMD_DIR/$unit_file"
-  fi
+  install_file 644 "$SRC_SYSTEMD/$unit_file" "$DST_SYSTEMD_DIR/$unit_file"
 done
 
 systemctl daemon-reload
