@@ -138,24 +138,8 @@ else
   echo "Keeping existing $DST_CONF"
 fi
 
-chown root:root "$DST_BIN" "$DST_UPDATE" "$DST_ETC_DIR/format.sh" "$DST_NTFY_ENV_EXAMPLE" \
-  "$DST_CONF_EXAMPLE" "$DST_NTFY_ENV" "$DST_CONF"
-
-for formatter_file in "${FORMATTER_FILES[@]}"; do
-  chown root:root "$DST_FORMATTERS_DIR/$formatter_file"
-done
-
-for lang_file in "${LANG_FILES[@]}"; do
-  chown root:root "$DST_LANG_DIR/$lang_file"
-done
-
-for ruleset_file in "${RULESET_FILES[@]}"; do
-  chown root:root "$DST_RULESETS_DIR/$ruleset_file"
-done
-
 install -m 644 "$SRC_SYSTEMD/audit-log-to-ntfy.service" "$DST_SYSTEMD_DIR/audit-log-to-ntfy.service"
 install -m 644 "$SRC_SYSTEMD/audit-log-to-ntfy.timer" "$DST_SYSTEMD_DIR/audit-log-to-ntfy.timer"
-chown root:root "$DST_SYSTEMD_DIR/audit-log-to-ntfy.service" "$DST_SYSTEMD_DIR/audit-log-to-ntfy.timer"
 
 systemctl daemon-reload
 if ! systemctl is-enabled --quiet audit-log-to-ntfy.timer 2>/dev/null; then
