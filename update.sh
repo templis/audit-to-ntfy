@@ -51,13 +51,11 @@ git -C "$REPO_DIR" pull --ff-only
 
 echo "Re-installing updated files ..."
 if (( EUID == 0 )); then
-  bash "$REPO_DIR/install.sh"
+  INSTALL_CONTEXT=update bash "$REPO_DIR/install.sh"
 else
   if ! command -v sudo >/dev/null 2>&1; then
     echo "sudo is required to run install.sh as root." >&2
     exit 1
   fi
-  sudo bash "$REPO_DIR/install.sh"
+  sudo INSTALL_CONTEXT=update bash "$REPO_DIR/install.sh"
 fi
-
-echo "Update complete."

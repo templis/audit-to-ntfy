@@ -22,6 +22,8 @@ DST_NTFY_ENV_EXAMPLE="$DST_ETC_DIR/ntfy.env.example"
 DST_CONF="$DST_ETC_DIR/audit-alerts.conf"
 DST_CONF_EXAMPLE="$DST_ETC_DIR/audit-alerts.conf.example"
 
+INSTALL_CONTEXT="${INSTALL_CONTEXT:-install}"
+
 FORMATTER_FILES=(
   "default.sh"
   "priv-esc.sh"
@@ -135,20 +137,25 @@ install -m 644 "$SRC_SYSTEMD/audit-log-to-ntfy.timer" "$DST_SYSTEMD_DIR/audit-lo
 chown root:root "$DST_SYSTEMD_DIR/audit-log-to-ntfy.service" "$DST_SYSTEMD_DIR/audit-log-to-ntfy.timer"
 
 systemctl daemon-reload
-systemctl enable --now audit-log-to-ntfy.timer
+if ! systemctl is-enabled --quiet audit-log-to-ntfy.timer 2>/dev/null; then
+  systemctl enable audit-log-to-ntfy.timer
+fi
+systemctl start audit-log-to-ntfy.timer
 
-cat <<'POST_INSTALL'
+if [[ "$INSTALL_CONTEXT" == "update" ]]; then
+  echo "Files updated. Timer reloaded."
+else
+  cat <<'POST_INSTALL'
 Install complete.
 
 Next steps:
-1. Edit ntfy credentials with vi:
+1. Edit ntfy credentials:
    sudo vi /etc/audit-alerts/ntfy.env
 2. Optional: tune alert behavior:
    sudo vi /etc/audit-alerts/audit-alerts.conf
 3. Manual test run:
    sudo /usr/local/bin/audit-log-to-ntfy.sh
-4. Update command:
-   sudo /usr/local/bin/audit-to-ntfy-update.sh
-5. Check service logs:
+4. Check service logs:
    journalctl -u audit-log-to-ntfy.service -n 50 --no-pager
 POST_INSTALL
+fi
