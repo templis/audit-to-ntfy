@@ -44,6 +44,7 @@ RULESET_FILES=(
 )
 
 LANG_FILES=(
+  "en_US.sh"
   "de_DE.sh"
 )
 
