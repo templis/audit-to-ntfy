@@ -15,6 +15,7 @@ DST_UPDATE="/usr/local/bin/audit-to-ntfy-update.sh"
 DST_ETC_DIR="/etc/audit-alerts"
 DST_FORMATTERS_DIR="$DST_ETC_DIR/formatters.d"
 DST_RULESETS_DIR="$DST_ETC_DIR/rules.d"
+DST_LANG_DIR="$DST_ETC_DIR/lang"
 DST_SYSTEMD_DIR="/etc/systemd/system"
 
 DST_NTFY_ENV="$DST_ETC_DIR/ntfy.env"
@@ -40,6 +41,10 @@ RULESET_FILES=(
   "systemd.rules.sh"
   "user-systemd.rules.sh"
   "priv-esc.rules.sh"
+)
+
+LANG_FILES=(
+  "de_DE.sh"
 )
 
 if (( EUID != 0 )); then
@@ -78,11 +83,19 @@ for ruleset_file in "${RULESET_FILES[@]}"; do
   fi
 done
 
+for lang_file in "${LANG_FILES[@]}"; do
+  if [[ ! -f "$SRC_ETC/lang/$lang_file" ]]; then
+    echo "Missing lang source: $SRC_ETC/lang/$lang_file" >&2
+    exit 1
+  fi
+done
+
 echo "Installing $PROJECT_NAME..."
 
 install -d -m 755 "$DST_ETC_DIR"
 install -d -m 755 "$DST_FORMATTERS_DIR"
 install -d -m 755 "$DST_RULESETS_DIR"
+install -d -m 755 "$DST_LANG_DIR"
 install -d -m 755 "$DST_SYSTEMD_DIR"
 
 install -m 755 "$SRC_BIN" "$DST_BIN"
@@ -91,6 +104,10 @@ install -m 755 "$SRC_ETC/format.sh" "$DST_ETC_DIR/format.sh"
 
 for formatter_file in "${FORMATTER_FILES[@]}"; do
   install -m 644 "$SRC_ETC/formatters.d/$formatter_file" "$DST_FORMATTERS_DIR/$formatter_file"
+done
+
+for lang_file in "${LANG_FILES[@]}"; do
+  install -m 644 "$SRC_ETC/lang/$lang_file" "$DST_LANG_DIR/$lang_file"
 done
 
 for ruleset_file in "${RULESET_FILES[@]}"; do
@@ -126,6 +143,10 @@ chown root:root "$DST_BIN" "$DST_UPDATE" "$DST_ETC_DIR/format.sh" "$DST_NTFY_ENV
 
 for formatter_file in "${FORMATTER_FILES[@]}"; do
   chown root:root "$DST_FORMATTERS_DIR/$formatter_file"
+done
+
+for lang_file in "${LANG_FILES[@]}"; do
+  chown root:root "$DST_LANG_DIR/$lang_file"
 done
 
 for ruleset_file in "${RULESET_FILES[@]}"; do

@@ -61,6 +61,8 @@ ALERT_KEYS_REGEX="${ALERT_KEYS_REGEX:- key=\"(sshkeys|sudo-use|priv-esc|systemd|
 MAX_BODY="${MAX_BODY:-1200}"
 FORMATTERS_DIR="${FORMATTERS_DIR:-/etc/audit-alerts/formatters.d}"
 RULESETS_DIR="${RULESETS_DIR:-/etc/audit-alerts/rules.d}"
+ALERT_LANG="${ALERT_LANG:-}"
+LANG_DIR="${LANG_DIR:-/etc/audit-alerts/lang}"
 HOME_USER="${HOME_USER:-}"
 HOME_DIR="${HOME_DIR:-}"
 
@@ -159,6 +161,8 @@ format_output="$(
   HOME_DIR="$HOME_DIR" \
   FORMATTERS_DIR="$FORMATTERS_DIR" \
   RULESETS_DIR="$RULESETS_DIR" \
+  ALERT_LANG="$ALERT_LANG" \
+  LANG_DIR="$LANG_DIR" \
   "$FORMAT_DISPATCHER"
 )"
 

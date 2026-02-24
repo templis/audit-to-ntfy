@@ -15,3 +15,11 @@ FORMATTERS_DIR="/etc/audit-alerts/formatters.d"
 
 # Directory holding optional custom rulesets (sourced by formatter dispatcher).
 RULESETS_DIR="/etc/audit-alerts/rules.d"
+
+# Language for notification labels.
+# Set to a locale tag matching a file in LANG_DIR (e.g. de_DE loads de_DE.sh).
+# Leave empty to use built-in English strings.
+ALERT_LANG=""
+
+# Directory holding language files (<locale>.sh).
+LANG_DIR="/etc/audit-alerts/lang"

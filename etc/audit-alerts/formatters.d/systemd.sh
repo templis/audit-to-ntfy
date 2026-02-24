@@ -1,12 +1,10 @@
 _systemd_action_label() {
-  # Maps raw syscall number to a human-readable action label.
-  # x86_64 syscall numbers for the operations systemd commonly triggers.
   local num="$1"
   case "$num" in
-    82|264|316) echo "renamed" ;;
-    83)         echo "mkdir" ;;
-    87|263)     echo "removed" ;;
-    88)         echo "symlinked (enable)" ;;
+    82|264|316) echo "$L_SYSTEMD_ACT_RENAMED" ;;
+    83)         echo "$L_SYSTEMD_ACT_MKDIR" ;;
+    87|263)     echo "$L_SYSTEMD_ACT_REMOVED" ;;
+    88)         echo "$L_SYSTEMD_ACT_SYMLINKED" ;;
     *)          echo "" ;;
   esac
 }
@@ -14,11 +12,11 @@ _systemd_action_label() {
 _systemd_exit_label() {
   local code="$1"
   case "$code" in
-    0)   echo "ok" ;;
-    -2)  echo "not found" ;;
-    -13) echo "permission denied" ;;
-    -17) echo "already exists" ;;
-    -28) echo "no space" ;;
+    0)   echo "$L_RESULT_OK" ;;
+    -2)  echo "$L_RESULT_NOT_FOUND" ;;
+    -13) echo "$L_RESULT_PERM_DENIED" ;;
+    -17) echo "$L_RESULT_ALREADY_EXISTS" ;;
+    -28) echo "$L_RESULT_NO_SPACE" ;;
     *)   echo "exit=$code" ;;
   esac
 }
@@ -26,12 +24,12 @@ _systemd_exit_label() {
 formatter_render() {
   local path
   local scope
+  local default_summary
   local summary
   local syscall_num
   local action_label
   local success
   local exit_code
-  local exit_label
   local result_line
 
   path="$(extract_target_path)"
@@ -39,9 +37,9 @@ formatter_render() {
     path="unknown path"
   fi
 
-  scope="system"
+  scope="$L_SYSTEMD_SCOPE_SYSTEM"
   if [[ "${EVENT_KEY:-}" == "user-systemd" ]]; then
-    scope="user"
+    scope="$L_SYSTEMD_SCOPE_USER"
   fi
 
   syscall_num="$(extract_numeric_field "syscall" "$SYSCALL_LINE")"
@@ -51,26 +49,27 @@ formatter_render() {
   exit_code="$(sed -n 's/.* exit=\(-\?[0-9]*\).*/\1/p' <<<"$SYSCALL_LINE" | head -n 1)"
 
   if [[ "$success" == "yes" ]]; then
-    result_line="success"
+    result_line="$L_RESULT_OK"
   elif [[ -n "$exit_code" ]]; then
-    exit_label="$(_systemd_exit_label "$exit_code")"
-    result_line="failed: ${exit_label}"
+    result_line="${L_RESULT_FAILED} $(_systemd_exit_label "$exit_code")"
   fi
 
-  summary="${RULE_SYSTEMD_SUMMARY:-${scope} systemd change on: ${path}}"
+  # shellcheck disable=SC2059
+  default_summary="$(printf "$L_SYSTEMD_CHANGE" "$scope" "$path")"
+  summary="${RULE_SYSTEMD_SUMMARY:-$default_summary}"
 
   FORMAT_TITLE="🔐 Audit: ${EVENT_KEY:-systemd} on ${AUDIT_HOST}"
   FORMAT_BODY="$(
-    printf "User: %s (AUID=%s)\n" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
+    printf "%s %s (AUID=%s)\n" "$L_USER" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
     printf "%s\n" "$summary"
     if [[ -n "$action_label" ]]; then
-      printf "Action: %s\n" "$action_label"
+      printf "%s %s\n" "$L_ACTION" "$action_label"
     fi
-    if [[ -n "$result_line" ]]; then
-      printf "Result: %s\n" "$result_line"
+    if [[ -n "${result_line:-}" ]]; then
+      printf "%s %s\n" "$L_RESULT" "$result_line"
     fi
-    printf "Via: %s (%s)\n" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
-    printf "TTY: %s\n" "${EVENT_TTY:-?}"
+    printf "%s %s (%s)\n" "$L_VIA" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
+    printf "%s %s\n" "$L_TTY" "${EVENT_TTY:-?}"
     printf "\n"
     inspect_hint
   )"

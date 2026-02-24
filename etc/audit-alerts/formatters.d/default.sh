@@ -12,18 +12,18 @@ formatter_render() {
 
   FORMAT_TITLE="🔐 Audit: ${EVENT_KEY:-event} on ${AUDIT_HOST}"
   FORMAT_BODY="$(
-    printf "User: %s (AUID=%s)\n" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
-    printf "UID: %s\n" "${EVENT_UID:-?}"
+    printf "%s %s (AUID=%s)\n" "$L_USER" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
+    printf "%s %s\n" "$L_UID" "${EVENT_UID:-?}"
     if [[ -n "$default_summary" ]]; then
       printf "%s\n" "$default_summary"
     fi
     if [[ -n "$priv_esc_summary" ]]; then
       printf "%s\n" "$priv_esc_summary"
     fi
-    printf "Exe: %s (%s)\n" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
-    printf "TTY: %s\n" "${EVENT_TTY:-?}"
+    printf "%s %s (%s)\n" "$L_EXE" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
+    printf "%s %s\n" "$L_TTY" "${EVENT_TTY:-?}"
     if [[ -n "$path" ]]; then
-      printf "Path: %s\n" "$path"
+      printf "%s %s\n" "$L_PATH" "$path"
     fi
     printf "\n"
     inspect_hint

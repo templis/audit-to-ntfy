@@ -16,6 +16,66 @@ HOME_USER="${HOME_USER:-}"
 HOME_DIR="${HOME_DIR:-}"
 FORMATTERS_DIR="${FORMATTERS_DIR:-/etc/audit-alerts/formatters.d}"
 RULESETS_DIR="${RULESETS_DIR:-/etc/audit-alerts/rules.d}"
+ALERT_LANG="${ALERT_LANG:-}"
+LANG_DIR="${LANG_DIR:-/etc/audit-alerts/lang}"
+
+# Source language file before setting defaults so it can override them.
+if [[ -n "$ALERT_LANG" ]]; then
+  _lang_file="${LANG_DIR%/}/${ALERT_LANG}.sh"
+  if [[ -f "$_lang_file" ]]; then
+    # shellcheck disable=SC1090
+    source "$_lang_file"
+  fi
+fi
+
+# i18n string defaults (English). Any variable already set by a language
+# file is left untouched thanks to the ${var:-default} pattern.
+
+# Field labels
+L_USER="${L_USER:-User:}"
+L_UID="${L_UID:-UID:}"
+L_TTY="${L_TTY:-TTY:}"
+L_COMMAND="${L_COMMAND:-Command:}"
+L_ACTION="${L_ACTION:-Action:}"
+L_RESULT="${L_RESULT:-Result:}"
+L_RESULT_FAILED="${L_RESULT_FAILED:-failed:}"
+L_VIA="${L_VIA:-Via:}"
+L_ESCALATION="${L_ESCALATION:-Escalation:}"
+L_PATH="${L_PATH:-Path:}"
+L_EXE="${L_EXE:-Exe:}"
+
+# inspect_hint strings
+L_INSPECT_HINT="${L_INSPECT_HINT:-How to inspect this exact event:}"
+L_INSPECT_CMD="${L_INSPECT_CMD:-sudo ausearch --event %s -i}"
+
+# Formatter summary format strings (%s placeholders, positional per formatter)
+L_SSHKEYS_SUMMARY="${L_SSHKEYS_SUMMARY:-write on: %s with: %s (%s)}"
+L_SUDO_SUMMARY="${L_SUDO_SUMMARY:-sudo via: %s (%s)}"
+L_SYSTEMD_CHANGE="${L_SYSTEMD_CHANGE:-%s systemd change on: %s}"
+L_SYSTEMD_SCOPE_SYSTEM="${L_SYSTEMD_SCOPE_SYSTEM:-system}"
+L_SYSTEMD_SCOPE_USER="${L_SYSTEMD_SCOPE_USER:-user}"
+
+# systemd action labels (mapped from syscall number)
+L_SYSTEMD_ACT_RENAMED="${L_SYSTEMD_ACT_RENAMED:-renamed}"
+L_SYSTEMD_ACT_MKDIR="${L_SYSTEMD_ACT_MKDIR:-mkdir}"
+L_SYSTEMD_ACT_REMOVED="${L_SYSTEMD_ACT_REMOVED:-removed}"
+L_SYSTEMD_ACT_SYMLINKED="${L_SYSTEMD_ACT_SYMLINKED:-symlinked (enable)}"
+
+# systemd / generic result labels (mapped from exit code)
+L_RESULT_OK="${L_RESULT_OK:-ok}"
+L_RESULT_NOT_FOUND="${L_RESULT_NOT_FOUND:-not found}"
+L_RESULT_PERM_DENIED="${L_RESULT_PERM_DENIED:-permission denied}"
+L_RESULT_ALREADY_EXISTS="${L_RESULT_ALREADY_EXISTS:-already exists}"
+L_RESULT_NO_SPACE="${L_RESULT_NO_SPACE:-no space}"
+
+# priv-esc exe labels (%s is replaced with EVENT_COMM where applicable)
+L_PRIV_PAM="${L_PRIV_PAM:-PAM password check (%s)}"
+L_PRIV_SU="${L_PRIV_SU:-switch user (su)}"
+L_PRIV_NEWGRP="${L_PRIV_NEWGRP:-new group (newgrp)}"
+L_PRIV_PKEXEC="${L_PRIV_PKEXEC:-polkit exec (pkexec)}"
+L_PRIV_PASSWD="${L_PRIV_PASSWD:-password change (passwd)}"
+L_PRIV_CHUSER="${L_PRIV_CHUSER:-change user info (%s)}"
+L_PRIV_MOUNT="${L_PRIV_MOUNT:-mount operation (%s)}"
 
 extract_quoted_field() {
   local field="$1"
@@ -88,8 +148,9 @@ decode_proctitle() {
 }
 
 inspect_hint() {
-  printf "How to inspect this exact event:\n"
-  printf "sudo ausearch --event %s -i\n" "${SERIAL:-?}"
+  printf "%s\n" "$L_INSPECT_HINT"
+  # shellcheck disable=SC2059
+  printf "${L_INSPECT_CMD}\n" "${SERIAL:-?}"
 }
 
 auid_to_user() {
@@ -173,9 +234,9 @@ fi
 if [[ ! -f "$formatter" ]]; then
   FORMAT_TITLE="🔐 Audit: ${EVENT_KEY:-event} on ${AUDIT_HOST}"
   FORMAT_BODY="$(
-    printf "User: %s (AUID=%s)\n" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
-    printf "UID: %s\n" "${EVENT_UID:-?}"
-    printf "Exe: %s (%s)\n" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
+    printf "%s %s (AUID=%s)\n" "$L_USER" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
+    printf "%s %s\n" "$L_UID" "${EVENT_UID:-?}"
+    printf "%s %s (%s)\n" "$L_EXE" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
     printf "\n"
     inspect_hint
   )"
@@ -187,9 +248,9 @@ else
   else
     FORMAT_TITLE="🔐 Audit: ${EVENT_KEY:-event} on ${AUDIT_HOST}"
     FORMAT_BODY="$(
-      printf "User: %s (AUID=%s)\n" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
-      printf "UID: %s\n" "${EVENT_UID:-?}"
-      printf "Exe: %s (%s)\n" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
+      printf "%s %s (AUID=%s)\n" "$L_USER" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
+      printf "%s %s\n" "$L_UID" "${EVENT_UID:-?}"
+      printf "%s %s (%s)\n" "$L_EXE" "${EVENT_EXE:-?}" "${EVENT_COMM:-?}"
       printf "\n"
       inspect_hint
     )"
@@ -201,7 +262,7 @@ if [[ -z "$FORMAT_TITLE" ]]; then
 fi
 if [[ -z "$FORMAT_BODY" ]]; then
   FORMAT_BODY="$(
-    printf "User: %s (AUID=%s)\n" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
+    printf "%s %s (AUID=%s)\n" "$L_USER" "${EVENT_USER:-unknown}" "${EVENT_AUID:-?}"
     printf "\n"
     inspect_hint
   )"
