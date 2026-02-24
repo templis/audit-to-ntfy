@@ -77,6 +77,21 @@ L_PRIV_PASSWD="${L_PRIV_PASSWD:-password change (passwd)}"
 L_PRIV_CHUSER="${L_PRIV_CHUSER:-change user info (%s)}"
 L_PRIV_MOUNT="${L_PRIV_MOUNT:-mount operation (%s)}"
 
+# dir-watch summary format string (%1$s = action label, %2$s = path)
+L_DIRWATCH_SUMMARY="${L_DIRWATCH_SUMMARY:-%s on: %s}"
+
+# dir-watch action labels (mapped from syscall number)
+L_DIRWATCH_ACT_WRITE="${L_DIRWATCH_ACT_WRITE:-modified}"
+L_DIRWATCH_ACT_RENAMED="${L_DIRWATCH_ACT_RENAMED:-renamed}"
+L_DIRWATCH_ACT_MKDIR="${L_DIRWATCH_ACT_MKDIR:-directory created}"
+L_DIRWATCH_ACT_RMDIR="${L_DIRWATCH_ACT_RMDIR:-directory removed}"
+L_DIRWATCH_ACT_DELETED="${L_DIRWATCH_ACT_DELETED:-deleted}"
+L_DIRWATCH_ACT_SYMLINKED="${L_DIRWATCH_ACT_SYMLINKED:-symlink created}"
+L_DIRWATCH_ACT_LINKED="${L_DIRWATCH_ACT_LINKED:-hard link created}"
+L_DIRWATCH_ACT_CHMOD="${L_DIRWATCH_ACT_CHMOD:-permissions changed}"
+L_DIRWATCH_ACT_CHOWN="${L_DIRWATCH_ACT_CHOWN:-owner changed}"
+L_DIRWATCH_ACT_EXEC="${L_DIRWATCH_ACT_EXEC:-executed}"
+
 extract_quoted_field() {
   local field="$1"
   local line="$2"

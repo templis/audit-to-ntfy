@@ -48,3 +48,18 @@ L_PRIV_PKEXEC="polkit exec (pkexec)"
 L_PRIV_PASSWD="password change (passwd)"
 L_PRIV_CHUSER="change user info (%s)"
 L_PRIV_MOUNT="mount operation (%s)"
+
+# dir-watch summary format string (%1$s = action label, %2$s = path)
+L_DIRWATCH_SUMMARY="%s on: %s"
+
+# dir-watch action labels (mapped from syscall number)
+L_DIRWATCH_ACT_WRITE="modified"
+L_DIRWATCH_ACT_RENAMED="renamed"
+L_DIRWATCH_ACT_MKDIR="directory created"
+L_DIRWATCH_ACT_RMDIR="directory removed"
+L_DIRWATCH_ACT_DELETED="deleted"
+L_DIRWATCH_ACT_SYMLINKED="symlink created"
+L_DIRWATCH_ACT_LINKED="hard link created"
+L_DIRWATCH_ACT_CHMOD="permissions changed"
+L_DIRWATCH_ACT_CHOWN="owner changed"
+L_DIRWATCH_ACT_EXEC="executed"

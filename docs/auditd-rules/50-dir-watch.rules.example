@@ -1,0 +1,12 @@
+## audit-to-ntfy: directory watch rule example
+## Copy to /etc/audit/rules.d/50-dir-watch.rules and adjust the path.
+## Read events (-p r) are intentionally excluded to avoid noise.
+##
+## -p wxa meaning:
+##   w = write/create/truncate
+##   x = execute
+##   a = attribute changes (chmod, chown)
+##
+## Uncomment and adapt:
+##
+## -a always,exit -F dir=/path/to/watched/directory/ -F perm=wxa -k dir-watch

@@ -8,7 +8,7 @@ The project is designed for Arch Linux KDE and stays portable across distros by 
 
 - Offset-based log reading from `/var/log/audit/audit.log`
 - Deduplication by audit `msgid` / serial (`/var/lib/audit-log-to-ntfy.lastmsg`)
-- Configurable key filter (default: `sshkeys`, `sudo-use`, `priv-esc`, `systemd`, `user-systemd`)
+- Configurable key filter (default: `sshkeys`, `sudo-use`, `priv-esc`, `systemd`, `user-systemd`, `dir-watch`)
 - Modular formatter plugins (`formatters.d/<key>.sh`, fallback to `default.sh`)
 - Optional custom rulesets per module via sourced files in `rules.d`
 - NTFY delivery with `curl --config /dev/null` and bearer token
@@ -96,11 +96,11 @@ sudo install -m 755 bin/audit-log-to-ntfy.sh /usr/local/bin/audit-log-to-ntfy.sh
 sudo install -m 755 update.sh /usr/local/bin/audit-to-ntfy-update.sh
 sudo install -m 755 etc/audit-alerts/format.sh /etc/audit-alerts/format.sh
 
-for formatter_file in default.sh sshkeys.sh sudo-use.sh systemd.sh; do
+for formatter_file in default.sh dir-watch.sh sshkeys.sh sudo-use.sh systemd.sh; do
   sudo install -m 644 "etc/audit-alerts/formatters.d/${formatter_file}" "/etc/audit-alerts/formatters.d/${formatter_file}"
 done
 
-for ruleset_file in common.rules.sh default.rules.sh sshkeys.rules.sh sudo-use.rules.sh systemd.rules.sh user-systemd.rules.sh priv-esc.rules.sh; do
+for ruleset_file in common.rules.sh default.rules.sh dir-watch.rules.sh sshkeys.rules.sh sudo-use.rules.sh systemd.rules.sh user-systemd.rules.sh priv-esc.rules.sh; do
   if [ ! -f "/etc/audit-alerts/rules.d/${ruleset_file}" ]; then
     sudo install -m 644 "etc/audit-alerts/rules.d/${ruleset_file}" "/etc/audit-alerts/rules.d/${ruleset_file}"
   fi
@@ -138,11 +138,11 @@ sudo chown root:root \
   /etc/audit-alerts/ntfy.env \
   /etc/audit-alerts/audit-alerts.conf
 
-for formatter_file in default.sh sshkeys.sh sudo-use.sh systemd.sh; do
+for formatter_file in default.sh dir-watch.sh sshkeys.sh sudo-use.sh systemd.sh; do
   sudo chown root:root "/etc/audit-alerts/formatters.d/${formatter_file}"
 done
 
-for ruleset_file in common.rules.sh default.rules.sh sshkeys.rules.sh sudo-use.rules.sh systemd.rules.sh user-systemd.rules.sh priv-esc.rules.sh; do
+for ruleset_file in common.rules.sh default.rules.sh dir-watch.rules.sh sshkeys.rules.sh sudo-use.rules.sh systemd.rules.sh user-systemd.rules.sh priv-esc.rules.sh; do
   sudo chown root:root "/etc/audit-alerts/rules.d/${ruleset_file}"
 done
 ```
@@ -206,6 +206,7 @@ Supported override variables:
 - `sudo-use`: `RULE_SUDO_SUMMARY`
 - `systemd` and `user-systemd`: `RULE_SYSTEMD_SUMMARY`
 - `priv-esc`: `RULE_PRIV_ESC_SUMMARY`
+- `dir-watch`: `RULE_DIRWATCH_SUMMARY`
 - fallback/default: `RULE_DEFAULT_SUMMARY`
 
 If you create useful rulesets, please send them as examples so other users can benefit too.
@@ -216,6 +217,7 @@ If you create useful rulesets, please send them as examples so other users can b
 - `sudo-use`: shows invoking user and decoded proctitle command when available
 - `priv-esc`: summarizes uid/euid context and executable
 - `systemd` / `user-systemd`: highlights changed path and scope
+- `dir-watch`: shows operation type (modified/renamed/deleted/…) and affected path
 - fallback: `default.sh`
 
 Each message includes:

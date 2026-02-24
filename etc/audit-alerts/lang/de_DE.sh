@@ -48,3 +48,18 @@ L_PRIV_PKEXEC="Polkit-Ausführung (pkexec)"
 L_PRIV_PASSWD="Passwortänderung (passwd)"
 L_PRIV_CHUSER="Benutzerinfo ändern (%s)"
 L_PRIV_MOUNT="Einhängevorgang (%s)"
+
+# dir-watch Zusammenfassung (%1$s = Aktion, %2$s = Pfad)
+L_DIRWATCH_SUMMARY="%s an: %s"
+
+# dir-watch Aktionen (aus Syscall-Nummer)
+L_DIRWATCH_ACT_WRITE="geändert"
+L_DIRWATCH_ACT_RENAMED="umbenannt"
+L_DIRWATCH_ACT_MKDIR="Verzeichnis erstellt"
+L_DIRWATCH_ACT_RMDIR="Verzeichnis entfernt"
+L_DIRWATCH_ACT_DELETED="gelöscht"
+L_DIRWATCH_ACT_SYMLINKED="Symlink erstellt"
+L_DIRWATCH_ACT_LINKED="Hardlink erstellt"
+L_DIRWATCH_ACT_CHMOD="Berechtigungen geändert"
+L_DIRWATCH_ACT_CHOWN="Eigentümer geändert"
+L_DIRWATCH_ACT_EXEC="ausgeführt"

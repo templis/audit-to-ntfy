@@ -27,6 +27,7 @@ INSTALL_CONTEXT="${INSTALL_CONTEXT:-install}"
 
 FORMATTER_FILES=(
   "default.sh"
+  "dir-watch.sh"
   "priv-esc.sh"
   "sshkeys.sh"
   "sudo-use.sh"
@@ -36,6 +37,7 @@ FORMATTER_FILES=(
 RULESET_FILES=(
   "common.rules.sh"
   "default.rules.sh"
+  "dir-watch.rules.sh"
   "sshkeys.rules.sh"
   "sudo-use.rules.sh"
   "systemd.rules.sh"

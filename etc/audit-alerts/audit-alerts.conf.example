@@ -1,6 +1,6 @@
 # Regex used to select interesting audit keys.
 # Keep "rootcmd" out of the default to avoid self-noise.
-ALERT_KEYS_REGEX=' key="(sshkeys|sudo-use|priv-esc|systemd|user-systemd)"'
+ALERT_KEYS_REGEX=' key="(sshkeys|sudo-use|priv-esc|systemd|user-systemd|dir-watch)"'
 
 # Hard cap for notification body length.
 MAX_BODY=1200
