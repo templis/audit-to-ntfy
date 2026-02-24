@@ -138,8 +138,11 @@ else
   echo "Keeping existing $DST_CONF"
 fi
 
-install -m 644 "$SRC_SYSTEMD/audit-log-to-ntfy.service" "$DST_SYSTEMD_DIR/audit-log-to-ntfy.service"
-install -m 644 "$SRC_SYSTEMD/audit-log-to-ntfy.timer" "$DST_SYSTEMD_DIR/audit-log-to-ntfy.timer"
+for unit_file in audit-log-to-ntfy.service audit-log-to-ntfy.timer; do
+  if ! cmp -s "$SRC_SYSTEMD/$unit_file" "$DST_SYSTEMD_DIR/$unit_file" 2>/dev/null; then
+    install -m 644 "$SRC_SYSTEMD/$unit_file" "$DST_SYSTEMD_DIR/$unit_file"
+  fi
+done
 
 systemctl daemon-reload
 if ! systemctl is-enabled --quiet audit-log-to-ntfy.timer 2>/dev/null; then
