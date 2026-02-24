@@ -59,6 +59,19 @@ extract_proctitle_hex() {
   sed -n 's/.* proctitle=\([0-9A-Fa-f]\+\).*/\1/p' <<<"$EVENT_LINES" | head -n 1
 }
 
+extract_proctitle_text() {
+  # Proctitle in audit.log is either hex (null-separated args) or a quoted
+  # plain string (when all chars are printable ASCII). Try hex first.
+  local hex
+  hex="$(extract_proctitle_hex)"
+  if [[ -n "$hex" ]]; then
+    decode_proctitle "$hex"
+    return
+  fi
+  # Fall back to quoted form: proctitle="sudo pacman -Syu"
+  sed -n 's/.*[[:space:]]proctitle="\([^"]*\)".*/\1/p' <<<"$EVENT_LINES" | head -n 1
+}
+
 decode_proctitle() {
   local hex="$1"
   local escaped

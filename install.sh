@@ -24,6 +24,7 @@ DST_CONF_EXAMPLE="$DST_ETC_DIR/audit-alerts.conf.example"
 
 FORMATTER_FILES=(
   "default.sh"
+  "priv-esc.sh"
   "sshkeys.sh"
   "sudo-use.sh"
   "systemd.sh"

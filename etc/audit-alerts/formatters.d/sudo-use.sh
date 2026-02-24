@@ -1,10 +1,8 @@
 formatter_render() {
-  local proctitle_hex
   local decoded_cmd
   local summary
 
-  proctitle_hex="$(extract_proctitle_hex)"
-  decoded_cmd="$(decode_proctitle "$proctitle_hex")"
+  decoded_cmd="$(extract_proctitle_text)"
   summary="${RULE_SUDO_SUMMARY:-sudo via: ${EVENT_EXE:-?} (${EVENT_COMM:-?})}"
 
   FORMAT_TITLE="🔐 Audit: sudo-use on ${AUDIT_HOST}"
