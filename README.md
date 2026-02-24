@@ -279,4 +279,4 @@ sudo ausearch --event <SERIAL> -i
 
 ## License
 
-LGPL-3.0-or-later, see `LICENSE`.
+GPL-3.0-or-later, see `LICENSE`.
