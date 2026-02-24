@@ -9,4 +9,4 @@
 ###
 # Eigene Regeln ab hier.
 # Beispiel:
-# RULE_DIRWATCH_SUMMARY='modified: EXAMPLE_PATH'
+# RULE_DIRWATCH_SUMMARY='modified: /path/to/watched/'
